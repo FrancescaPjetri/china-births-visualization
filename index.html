@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>China Birth Rates - Minimalist Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        /* Modulo 17: Riduzione del carico cognitivo tramite design pulito */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #ffffff; /* Sfondo bianco puro (Modulo 12) */
+            min-height: 100vh;
+            padding: 2rem;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #6b7280;
+        }
+
+        .chart-container {
+            background: #ffffff;
+            border: 1px solid #e5e7eb; /* Fine border (Anatomy of a Figure) */
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #ffffff;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .play-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+        }
+
+        .play-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .speed-control {
+            font-size: 0.9rem;
+            color: #4b5563;
+        }
+
+        select {
+            padding: 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .footer {
+            font-size: 0.85rem;
+            font-style: italic;
+            color: #9ca3af;
+            text-align: right;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>China Birth Rates by Gender</h1>
+            <p class="subtitle">Historical Data Analysis (1990 - 2023)</p>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="chartCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <button class="play-btn" id="playBtn">
+                <span id="playIcon">▶</span> <span id="playText">Play Animation</span>
+            </button>
+            <button id="resetBtn">↺ Reset</button>
+            <div class="speed-control">
+                <label>Speed: </label>
+                <select id="speedSelect">
+                    <option value="slow">Slow</option>
+                    <option value="medium" selected>Normal</option>
+                    <option value="fast">Fast</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Year</div>
+                <div class="stat-value" id="currentYear">1990</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Male Births</div>
+                <div class="stat-value" id="maleValue" style="color: #2563eb;">12.8M</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Female Births</div>
+                <div class="stat-value" id="femaleValue" style="color: #db2777;">10.2M</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Gender Ratio</div>
+                <div class="stat-value" id="ratioValue">1.25</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Source: National Bureau of Statistics (NBS) China. 
+        </div>
+    </div>
+
+    <script>
+        const birthData = [
+            { year: 1990, male: 12.8, female: 10.2 },
+            { year: 1995, male: 11.5, female: 9.1 },
+            { year: 2000, male: 9.8, female: 7.8 },
+            { year: 2005, male: 9.2, female: 7.4 },
+            { year: 2010, male: 9.5, female: 7.7 },
+            { year: 2015, male: 9.3, female: 7.6 },
+            { year: 2016, male: 10.1, female: 8.3 },
+            { year: 2020, male: 7.2, female: 5.9 },
+            { year: 2023, male: 5.2, female: 4.3 }
+        ];
+
+        let currentProgress = 0;
+        let isPlaying = false;
+        let chart = null;
+        let lastTimestamp = 0;
+
+        // Velocità ulteriormente ridotta per chiarezza analitica (Modulo 17)
+        const speedSettings = {
+            slow: 0.0008,
+            medium: 0.0025,
+            fast: 0.006
+        };
+
+        let currentSpeed = speedSettings.medium;
+        const ctx = document.getElementById('chartCanvas').getContext('2d');
+
+        function interpolateData(progress) {
+            const maxIndex = birthData.length - 1;
+            const exactPosition = progress * maxIndex;
+            const lowerIndex = Math.floor(exactPosition);
+            const upperIndex = Math.min(Math.ceil(exactPosition), maxIndex);
+            const fraction = exactPosition - lowerIndex;
+
+            const labels = [];
+            const maleData = [];
+            const femaleData = [];
+
+            for (let i = 0; i <= lowerIndex; i++) {
+                labels.push(birthData[i].year);
+                maleData.push(birthData[i].male);
+                femaleData.push(birthData[i].female);
+            }
+
+            if (fraction > 0 && upperIndex <= maxIndex) {
+                const l = birthData[lowerIndex];
+                const u = birthData[upperIndex];
+                labels.push(Math.round(l.year + (u.year - l.year) * fraction));
+                maleData.push(l.male + (u.male - l.male) * fraction);
+                femaleData.push(l.female + (u.female - l.female) * fraction);
+            }
+
+            return { labels, maleData, femaleData };
+        }
+
+        function initChart() {
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [birthData[0].year],
+                    datasets: [
+                        { label: 'Male Births', data: [birthData[0].male], borderColor: '#2563eb', borderWidth: 3, tension: 0.3, pointRadius: 0 },
+                        { label: 'Female Births', data: [birthData[0].female], borderColor: '#db2777', borderWidth: 3, tension: 0.3, pointRadius: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 13, weight: 'bold' } } } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Millions of Births' }, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateStats(progress) {
+            const data = interpolateData(progress);
+            const lastM = data.maleData[data.maleData.length - 1];
+            const lastF = data.femaleData[data.femaleData.length - 1];
+            
+            document.getElementById('currentYear').textContent = data.labels[data.labels.length - 1];
+            document.getElementById('maleValue').textContent = lastM.toFixed(1) + 'M';
+            document.getElementById('femaleValue').textContent = lastF.toFixed(1) + 'M';
+            document.getElementById('ratioValue').textContent = (lastM / lastF).toFixed(2);
+        }
+
+        function animate(timestamp) {
+            if (!lastTimestamp) lastTimestamp = timestamp;
+            const deltaTime = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+
+            if (isPlaying && currentProgress < 1) {
+                currentProgress += currentSpeed * (deltaTime / 16.67);
+                currentProgress = Math.min(currentProgress, 1);
+                
+                const { labels, maleData, femaleData } = interpolateData(currentProgress);
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = maleData;
+                chart.data.datasets[1].data = femaleData;
+                chart.update('none');
+                updateStats(currentProgress);
+
+                if (currentProgress < 1) requestAnimationFrame(animate);
+                else {
+                    isPlaying = false;
+                    document.getElementById('playText').textContent = 'Restart';
+                }
+            }
+        }
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            if (currentProgress >= 1) currentProgress = 0;
+            isPlaying = !isPlaying;
+            document.getElementById('playText').textContent = isPlaying ? 'Pause' : 'Play Animation';
+            if (isPlaying) { lastTimestamp = 0; requestAnimationFrame(animate); }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isPlaying = false;
+            currentProgress = 0;
+            lastTimestamp = 0;
+            document.getElementById('playText').textContent = 'Play Animation';
+            chart.data.labels = [birthData[0].year];
+            chart.data.datasets[0].data = [birthData[0].male];
+            chart.data.datasets[1].data = [birthData[0].female];
+            chart.update();
+            updateStats(0);
+        });
+
+        document.getElementById('speedSelect').addEventListener('change', (e) => {
+            currentSpeed = speedSettings[e.target.value];
+        });
+
+        initChart();
+        updateStats(0);
+    </script>
+</body>
+</html>
