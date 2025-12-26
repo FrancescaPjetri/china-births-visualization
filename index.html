@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>China Birth Rates - Minimalist Animation</title>
+    <title>China Birth Rates - Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <style>
-        /* Modulo 17: Riduzione del carico cognitivo tramite design pulito */
+        /* Reset e base per eliminare lo scroll */
         * {
             margin: 0;
             padding: 0;
@@ -14,65 +14,85 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #ffffff; /* Sfondo bianco puro (Modulo 12) */
-            min-height: 100vh;
-            padding: 2rem;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8fafc;
             color: #1f2937;
+            height: 100vh; /* Altezza fissa pari alla finestra */
+            width: 100vw;
+            overflow: hidden; /* Impedisce lo scrolling */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
         }
 
         .container {
-            max-width: 1100px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 1200px;
+            height: 100%; /* Occupa tutta l'altezza disponibile */
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
+        /* Header più compatto */
         .header {
-            text-align: center;
-            margin-bottom: 2.5rem;
+            text-align: left;
+            border-left: 4px solid #2563eb;
+            padding-left: 1rem;
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: 1.5rem; /* Ridotto */
             font-weight: 800;
-            letter-spacing: -0.025em;
-            margin-bottom: 0.5rem;
         }
 
         .subtitle {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             color: #6b7280;
         }
 
+        /* Il contenitore del grafico ora è flessibile */
         .chart-container {
+            flex-grow: 1; /* Prende tutto lo spazio centrale */
             background: #ffffff;
-            border: 1px solid #e5e7eb; /* Fine border (Anatomy of a Figure) */
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: 1rem;
+            position: relative;
+            min-height: 0; /* Fondamentale per il flexbox */
         }
 
+        /* Fondamentale per Chart.js in un layout flex */
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Controlli sulla stessa linea per risparmiare spazio */
         .controls {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            gap: 2rem;
-            margin-bottom: 2.5rem;
+            background: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
         }
 
         button {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
             font-weight: 600;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             cursor: pointer;
             background: #ffffff;
-            transition: all 0.2s ease;
-        }
-
-        button:hover {
-            background: #f9fafb;
-            border-color: #9ca3af;
         }
 
         .play-btn {
@@ -81,69 +101,49 @@
             border: none;
         }
 
-        .play-btn:hover {
-            background: #1d4ed8;
-        }
-
-        .speed-control {
-            font-size: 0.9rem;
-            color: #4b5563;
-        }
-
-        select {
-            padding: 0.4rem;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-        }
-
+        /* Stats grid più sottile */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 3rem;
+            gap: 1rem;
         }
 
         .stat-card {
-            padding: 1.25rem;
+            background: #ffffff;
+            padding: 0.75rem;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .stat-label {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             color: #6b7280;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .stat-value {
-            font-size: 1.75rem;
+            font-size: 1.4rem;
             font-weight: 700;
-            color: #111827;
         }
 
         .footer {
-            font-size: 0.85rem;
-            font-style: italic;
+            font-size: 0.75rem;
             color: #9ca3af;
             text-align: right;
-            border-top: 1px solid #f3f4f6;
-            padding-top: 1rem;
         }
 
-        @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>China Birth Rates by Gender</h1>
-            <p class="subtitle">Historical Data Analysis (1990 - 2023)</p>
+            <h1>China Birth Rates</h1>
+            <p class="subtitle">Historical Trends by Gender (1990 - 2023)</p>
         </div>
 
         <div class="chart-container">
@@ -151,13 +151,13 @@
         </div>
 
         <div class="controls">
-            <button class="play-btn" id="playBtn">
-                <span id="playIcon">▶</span> <span id="playText">Play Animation</span>
-            </button>
-            <button id="resetBtn">↺ Reset</button>
+            <div class="btn-group">
+                <button class="play-btn" id="playBtn">▶ Play</button>
+                <button id="resetBtn">↺ Reset</button>
+            </div>
             <div class="speed-control">
-                <label>Speed: </label>
-                <select id="speedSelect">
+                <label style="font-size: 0.85rem;">Speed: </label>
+                <select id="speedSelect" style="padding: 0.2rem;">
                     <option value="slow">Slow</option>
                     <option value="medium" selected>Normal</option>
                     <option value="fast">Fast</option>
@@ -185,11 +185,12 @@
         </div>
 
         <div class="footer">
-            Source: National Bureau of Statistics (NBS) China. 
+            Source: NBS China
         </div>
     </div>
 
     <script>
+        // Dati e logica JS (identica alla tua, ottimizzata per il resize)
         const birthData = [
             { year: 1990, male: 12.8, female: 10.2 },
             { year: 1995, male: 11.5, female: 9.1 },
@@ -207,15 +208,8 @@
         let chart = null;
         let lastTimestamp = 0;
 
-        // Velocità ulteriormente ridotta per chiarezza analitica (Modulo 17)
-        const speedSettings = {
-            slow: 0.0008,
-            medium: 0.0025,
-            fast: 0.006
-        };
-
+        const speedSettings = { slow: 0.0008, medium: 0.0025, fast: 0.006 };
         let currentSpeed = speedSettings.medium;
-        const ctx = document.getElementById('chartCanvas').getContext('2d');
 
         function interpolateData(progress) {
             const maxIndex = birthData.length - 1;
@@ -246,21 +240,23 @@
         }
 
         function initChart() {
+            const ctx = document.getElementById('chartCanvas').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: [birthData[0].year],
                     datasets: [
-                        { label: 'Male Births', data: [birthData[0].male], borderColor: '#2563eb', borderWidth: 3, tension: 0.3, pointRadius: 0 },
-                        { label: 'Female Births', data: [birthData[0].female], borderColor: '#db2777', borderWidth: 3, tension: 0.3, pointRadius: 0 }
+                        { label: 'Male', data: [birthData[0].male], borderColor: '#2563eb', borderWidth: 3, tension: 0.3, pointRadius: 0 },
+                        { label: 'Female', data: [birthData[0].female], borderColor: '#db2777', borderWidth: 3, tension: 0.3, pointRadius: 0 }
                     ]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false, // Permette al grafico di adattarsi al contenitore flex
                     animation: false,
-                    plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 13, weight: 'bold' } } } },
+                    plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } } },
                     scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Millions of Births' }, grid: { color: '#f3f4f6' } },
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
                         x: { grid: { display: false } }
                     }
                 }
@@ -271,7 +267,6 @@
             const data = interpolateData(progress);
             const lastM = data.maleData[data.maleData.length - 1];
             const lastF = data.femaleData[data.femaleData.length - 1];
-            
             document.getElementById('currentYear').textContent = data.labels[data.labels.length - 1];
             document.getElementById('maleValue').textContent = lastM.toFixed(1) + 'M';
             document.getElementById('femaleValue').textContent = lastF.toFixed(1) + 'M';
@@ -286,7 +281,6 @@
             if (isPlaying && currentProgress < 1) {
                 currentProgress += currentSpeed * (deltaTime / 16.67);
                 currentProgress = Math.min(currentProgress, 1);
-                
                 const { labels, maleData, femaleData } = interpolateData(currentProgress);
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = maleData;
@@ -297,7 +291,7 @@
                 if (currentProgress < 1) requestAnimationFrame(animate);
                 else {
                     isPlaying = false;
-                    document.getElementById('playText').textContent = 'Restart';
+                    document.getElementById('playBtn').textContent = '↺ Restart';
                 }
             }
         }
@@ -305,15 +299,14 @@
         document.getElementById('playBtn').addEventListener('click', () => {
             if (currentProgress >= 1) currentProgress = 0;
             isPlaying = !isPlaying;
-            document.getElementById('playText').textContent = isPlaying ? 'Pause' : 'Play Animation';
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸ Pause' : '▶ Play';
             if (isPlaying) { lastTimestamp = 0; requestAnimationFrame(animate); }
         });
 
         document.getElementById('resetBtn').addEventListener('click', () => {
             isPlaying = false;
             currentProgress = 0;
-            lastTimestamp = 0;
-            document.getElementById('playText').textContent = 'Play Animation';
+            document.getElementById('playBtn').textContent = '▶ Play';
             chart.data.labels = [birthData[0].year];
             chart.data.datasets[0].data = [birthData[0].male];
             chart.data.datasets[1].data = [birthData[0].female];
